@@ -1,0 +1,54 @@
+The Syntax of XML
+
+Document
+
+document  ::=  prolog element Misc*
+
+Character Range
+
+Char  ::= '\t' | '\n' | '\r' | [a-zA-Z0-9]
+
+Whitespace
+
+S  ::=  (' ' | '\t' | '\r' | '\n')+
+
+Names and Tokens
+
+NameChar  ::=  Letter | Digit |  '.' | '-' | '_' | ':'
+Name      ::=  (Letter | '_' | ':') (NameChar)*
+
+Literals
+
+AttValue       ::=  '"' ([^<&"])* '"' |  "'" ([^<&'])* "'"
+
+Comments
+
+Comment  ::=  '<!--' ((Char - '-') | ('-' (Char - '-')))* '-->'
+
+Prolog
+
+prolog       ::=  XMLDecl? Misc*
+XMLDecl      ::=  '<?xml' VersionInfo SDDecl? S? '?>'
+VersionInfo  ::=  S 'version' Eq ("'" VersionNum "'" | '"' VersionNum '"')
+Eq           ::=  S? '=' S?
+VersionNum   ::=  '1.0'
+Misc         ::=  Comment | S
+
+Standalone Document Declaration
+
+SDDecl  ::=  S 'standalone' Eq (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"'))
+
+Elements, Tags and Element Content
+
+element       ::=  EmptyElemTag  | STag content ETag
+STag          ::=  '<' Name (S Attribute)* S? '>'
+Attribute     ::=  Name Eq AttValue
+ETag          ::=  '</' Name S? '>'
+content       ::=  CharData? (element CharData?)*
+EmptyElemTag  ::=  '<' Name (S Attribute)* S? '/>'
+CharData      ::=  [^<&]* - ([^<&]* ']]>' [^<&]*)
+
+Characters
+
+Letter         ::= [a-zA-Z]
+Digit          ::= [0-9]

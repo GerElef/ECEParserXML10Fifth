@@ -1,0 +1,39 @@
+azAZ09 [a-zA-Z0-9]
+letter [a-zA-Z]
+digit [0-9]
+tablinefeed [ \r\t\n]
+minus -
+single_quote '
+double_quote "
+parenthesis_l (
+parenthesis_r )
+plus +
+comma ,
+dot .
+slash /
+colon :
+equals =
+question_mark ?
+semicolon ;
+exclamation_mark !
+asterisk *
+hashtag #
+at_sign @
+dollar_sign $
+underscore _
+percent_sign %
+comment_start <!--
+comment_end -->
+caret_sign ^
+bigger_than <
+smaller_than >
+xml_decl_start '<?xml'
+xml_decl_end '?>'
+version_kw 'version'
+version_1_0 '1.0'
+standalone_kw "standalone"
+yes_kw yes
+no_kw no
+endtag_start </
+
+

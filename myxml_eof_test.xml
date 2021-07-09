@@ -1,0 +1,11 @@
+<catalog>
+   <book>
+      <author>Gambardella, Matthew</author>
+      <title>XML Developer's Guide</title>
+   </book>
+   <book author="Gambardella, Matthew" title="XML Developer's Guide" genre="Computer"/>
+   <book>
+      <author>Gambardella, Matthew</author>
+      <title>XML Developer's Guide</title>
+   </book>
+</catalog>

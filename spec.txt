@@ -1,0 +1,202 @@
+MUST BE exactly one root element
+_________________________________________________________________
+Char range : #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF] and any Unicode character, excluding the surrogate blocks, FFFE, and FFFF. All XML processors MUST accept the UTF-8 and UTF-16 encodings of Unicode the mechanisms for signaling which of the two is in use, or for bringing other encodings into play, are discussed later, in 4.3.3 Character Encoding in Entities.
+_________________________________________________________________
+Grammar:
+S (white space) consists of one or more space (#x20) characters, carriage returns, line feeds, or tabs.
+
+S : (#x20 | #x9 | #xD | #xA)+
+
+The presence of #xD in the above production is maintained purely for backward compatibility with the First Edition. As explained in 2.11 End-of-Line Handling, all #xD characters literally present in an XML document are either removed or replaced by #xA characters before any other processing is done. The only way to get a #xD character to match this production is to use a character reference in an entity value literal.
+--should our parser support this?
+_________________________________________________________________
+An Nmtoken (name token) is any mixture of name characters.
+Disallowed initial characters for Names include digits, diacritics, the full stop and the hyphen.
+
+Names beginning with the string "xml", or with any string which would match (('X'|'x') ('M'|'m') ('L'|'l')), are reserved
+
+XML processors must accept the colon as a name character.
+
+The first character of a Name MUST be a NameStartChar, and any other characters MUST be NameChars;
+
+
+NameStartChar : ":" | [A-Z] | "_" | [a-z] | [#xC0-#xD6] | [#xD8-#xF6] | [#xF8-#x2FF] | [#x370-#x37D] | [#x37F-#x1FFF] | [#x200C-#x200D] | [#x2070-#x218F] | [#x2C00-#x2FEF] | [#x3001-#xD7FF] | [#xF900-#xFDCF] | [#xFDF0-#xFFFD] | [#x10000-#xEFFFF]
+NameChar : NameStartChar | "-" | "." | [0-9] | #xB7 | [#x0300-#x036F] | [#x203F-#x2040]
+Name : NameStartChar (NameChar)*
+Names : Name (#x20 Name)*
+Nmtoken : (NameChar)+
+Nmtokens : Nmtoken (#x20 Nmtoken)*
+
+_________________________________________________________________
+
+Literal data is any quoted string not containing the quotation mark used as a delimiter for that string.
+ Literals are used for specifying the content of internal entities (EntityValue), the values of attributes (AttValue), and external identifiers (SystemLiteral)
+
+Note that a SystemLiteral can be parsed without scanning for markup.
+
+EntityValue : '"' ([^%&"] | PEReference | Reference)* '"'
+			|  "'" ([^%&'] | PEReference | Reference)* "'"
+AttValue : '"' ([^<&"] | Reference)* '"'
+			|  "'" ([^<&'] | Reference)* "'"
+SystemLiteral : ('"' [^"]* '"') | ("'" [^']* "'")
+PubidLiteral : '"' PubidChar* '"' | "'" (PubidChar - "'")* "'"
+PubidChar : #x20 | #xD | #xA | [a-zA-Z0-9] | [-'()+,./:=?;!*#@$_%]
+_________________________________________________________________
+
+ Text consists of intermingled character data and markup. [Definition: Markup takes the form of start-tags, end-tags, empty-element tags, entity references, character references, comments, CDATA section delimiters, document type declarations, processing instructions, XML declarations, text declarations, and any white space that is at the top level of the document entity (that is, outside the document element and not inside any other markup).] 
+STag : '<' Name (S Attribute)* S? '>'
+
+Attribute : Name Eq AttValue 
+
+Eq : S? '=' S?
+
+ETag : '</' Name S? '>'
+
+EmptyElemTag : '<' Name (S Attribute)* S? '/>'
+
+Reference : EntityRef | CharRef
+EntityRef : '&' Name ';'	
+PEReference : '%' Name ';'
+
+CharRef : '&#' [0-9]+ ';' | '&#x' [0-9a-fA-F]+ ';'
+
+Comment	: '<!--' ((Char - '-') | ('-' (Char - '-')))* '-->'
+
+Note that the grammar does not allow a comment ending in --->. The following example is not well-formed.
+
+CDSect : CDStart CData CDEnd
+CDStart : '<![CDATA['
+CData : (Char* - (Char* ']]>' Char*))
+CDEnd : ']]>'
+
+doctypedecl : '<!DOCTYPE' S Name (S ExternalID)? S? ('[' intSubset ']' S?)? '>'
+DeclSep : PEReference | S 	
+intSubset : (markupdecl | DeclSep)*
+markupdecl : elementdecl | AttlistDecl | EntityDecl | NotationDecl | PI | Comment 
+
+PI : '<?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>'
+PITarget : Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
+
+prolog : XMLDecl? Misc* (doctypedecl Misc*)?
+XMLDecl : '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
+VersionInfo : S 'version' Eq ("'" VersionNum "'" | '"' VersionNum '"')
+Eq : S? '=' S?
+VersionNum : '1.' [0-9]+
+Misc : Comment | PI | S
+
+Even though the VersionNum production matches any version number of the form '1.x', XML 1.0 documents SHOULD NOT specify a version number other than '1.0'.
+
+Text Declaration
+TextDecl : '<?xml' VersionInfo? EncodingDecl S? '?>'
+
+The text declaration MUST be provided literally, not by reference to a parsed entity. The text declaration MUST NOT appear at any position other than the beginning of an external parsed entity. The text declaration in an external parsed entity is not considered part of its replacement text.
+
+ [Definition: All text that is not markup constitutes the character data of the document.] 
+
+CharData : [^<&]* - ([^<&]* ']]>' [^<&]*)
+_________________________________________________________________
+
+PIs are not part of the document's character data, but MUST be passed through to the application. The PI begins with a target (PITarget) used to identify the application to which the instruction is directed. The target names " XML ", " xml ", and so on are reserved for standardization in this or future versions of this specification. The XML Notation mechanism may be used for formal declaration of PI targets. Parameter entity references MUST NOT be recognized within processing instructions.
+_________________________________________________________________
+PI : '<?' PITarget (S (Char* - (Char* '?>' Char*)))? '?>'
+PITarget : Name - (('X' | 'x') ('M' | 'm') ('L' | 'l'))
+PIs are not part of the document's character data, but MUST be passed through to the application. The PI begins with a target (PITarget) used to identify the application to which the instruction is directed. The target names " XML ", " xml ", and so on are reserved for standardization in this or future versions of this specification. The XML Notation mechanism may be used for formal declaration of PI targets. Parameter entity references MUST NOT be recognized within processing instructions.
+_________________________________________________________________
+CDSect : CDStart CData CDEnd
+CDStart : '<![CDATA['
+CData : (Char* - (Char* ']]>' Char*))
+CDEnd : ']]>'
+Within a CDATA section, only the CDEnd string is recognized as markup, so that left angle brackets and ampersands may occur in their literal form; they need not (and cannot) be escaped using " &lt; " and " &amp; ". CDATA sections cannot nest.
+An example of a CDATA section, in which " <greeting> " and " </greeting> " are recognized as character data, not markup:
+
+<![CDATA[<greeting>Hello, world!</greeting>]]> 
+_________________________________________________________________
+ [Definition: XML documents SHOULD begin with an XML declaration which specifies the version of XML being used.] For example, the following is a complete XML document, well-formed but not valid:
+ <?xml version="1.0"?>
+<greeting>Hello, world!</greeting> 
+
+and so is this:
+
+<greeting>Hello, world!</greeting>
+
+The function of the markup in an XML document is to describe its storage and logical structure and to associate attribute name-value pairs with its logical structures. 
+
+
+[Definition: An XML document is valid if it has an associated document type declaration and if the document complies with the constraints expressed in it.] 
+
+The document type declaration MUST appear before the first element in the document.
+
+prolog : XMLDecl? Misc* (doctypedecl Misc*)?
+XMLDecl : '<?xml' VersionInfo EncodingDecl? SDDecl? S? '?>'
+VersionInfo : S 'version' Eq ("'" VersionNum "'" | '"' VersionNum '"')
+Eq : S? '=' S?
+VersionNum : '1.' [0-9]+
+Misc : Comment | PI | S 
+
+When an XML 1.0 processor encounters a document that specifies a 1.x version number other than '1.0', it will process it as a 1.0 document.
+
+doctypedecl : '<!DOCTYPE' S Name (S ExternalID)? S? ('[' intSubset ']' S?)? '>'	[VC: Root Element Type]
+DeclSep : PEReference | S 	[WFC: PE Between Declarations]
+intSubset : (markupdecl | DeclSep)*
+markupdecl : elementdecl | AttlistDecl | EntityDecl | NotationDecl | PI | Comment 
+_________________________________________________________________
+Standalone Document Declaration
+SDDecl : S 'standalone' Eq (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"')) 
+
+An example XML declaration with a standalone document declaration:
+
+<?xml version="1.0" standalone='yes'?>
+_________________________________________________________________
+2.10 White Space Handling
+A special attribute named xml:space may be attached to an element to signal an intention that in that element, white space should be preserved by applications. In valid documents, this attribute, like any other, MUST be declared if it is used. When declared, it MUST be given as an enumerated type whose values are one or both of "default" and "preserve". For example:
+
+<!ATTLIST poem  xml:space (default|preserve) 'preserve'>
+
+<!ATTLIST pre xml:space (preserve) #FIXED 'preserve'>
+_________________________________________________________________
+XML parsed entities are often stored in computer files which, for editing convenience, are organized into lines. These lines are typically separated by some combination of the characters CARRIAGE RETURN (#xD) and LINE FEED (#xA).
+
+To simplify the tasks of applications, the XML processor MUST behave as if 
+it normalized all line breaks in external parsed entities 
+(including the document entity) on input, before parsing, by translating both 
+the two-character sequence #xD #xA and any #xD 
+that is not followed by #xA to a single #xA character.
+
+_________________________________________________________________
+2.12 Language Identification
+
+In document processing, it is often useful to identify the natural 
+or formal language in which the content is written. 
+A special attribute named xml:lang may be inserted in 
+documents to specify the language used in the contents 
+and attribute values of any element in an XML document. 
+In valid documents, this attribute, like any other, 
+MUST be declared if it is used. The values of the attribute 
+are language identifiers as defined by [IETF BCP 47], Tags for the 
+Identification of Languages; in addition, the empty string may 
+be specified.
+
+<p xml:lang="en">The quick brown fox jumps over the lazy dog.</p>
+<p xml:lang="en-GB">What colour is it?</p>
+<p xml:lang="en-US">What color is it?</p>
+<sp who="Faust" desc='leise' xml:lang="de">
+  <l>Habe nun, ach! Philosophie,</l>
+  <l>Juristerei, und Medizin</l>
+  <l>und leider auch Theologie</l>
+  <l>durchaus studiert mit heißem Bemüh'n.</l>
+</sp>
+_________________________________________________________________
+_________________________________________________________________
+element	   ::=   	EmptyElemTag| STag content ETag
+  
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
+_________________________________________________________________
