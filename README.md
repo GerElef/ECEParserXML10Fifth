@@ -6,30 +6,45 @@ It is not interesting to implement this in this version, it's just a matter of l
 Since we're not at all bothered with being fully compliant, and are just interested in the academic part of writing a parser, we have omitted a few elements of XML that were too bothersome.
 ## Supported XML Syntax 
 ### Document
+```
 document  ::=  prolog element Misc*
+```
 ### Character Range
+```
 Char  ::= '\t' | '\n' | '\r' | [a-zA-Z0-9]
+```
 ### Whitespace
+```
 S  ::=  (' ' | '\t' | '\r' | '\n')+
+```
 ### Names and Tokens
+```
 NameChar  ::=  Letter | Digit |  '.' | '-' | '_' | ':'
 Name      ::=  (Letter | '_' | ':') (NameChar)*
+```
 ### Literals
+```
 AttValue       ::=  '"' ([^<&"])* '"' |  "'" ([^<&'])* "'"
+```
 ### Comments
+```
 Comment  ::=  '<!--' ((Char - '-') | ('-' (Char - '-')))* '-->'
+```
 ### Prolog
+```
 prolog       ::=  XMLDecl? Misc*
 XMLDecl      ::=  '<?xml' VersionInfo SDDecl? S? '?>'
 VersionInfo  ::=  S 'version' Eq ("'" VersionNum "'" | '"' VersionNum '"')
 Eq           ::=  S? '=' S?
 VersionNum   ::=  '1.0'
 Misc         ::=  Comment | S
-
+```
 ### Standalone Document Declaration
+```
 SDDecl  ::=  S 'standalone' Eq (("'" ('yes' | 'no') "'") | ('"' ('yes' | 'no') '"'))
-
+```
 ### Elements, Tags and Element Content
+```
 element       ::=  EmptyElemTag  | STag content ETag
 STag          ::=  '<' Name (S Attribute)* S? '>'
 Attribute     ::=  Name Eq AttValue
@@ -37,10 +52,11 @@ ETag          ::=  '</' Name S? '>'
 content       ::=  CharData? (element CharData?)*
 EmptyElemTag  ::=  '<' Name (S Attribute)* S? '/>'
 CharData      ::=  [^<&]* - ([^<&]* ']]>' [^<&]*)
-
+```
 ### Characters
+```
 Letter         ::= [a-zA-Z]
 Digit          ::= [0-9]
-
+```
 ## Project Status
 Pet project; do not use! XML Parser and validator, by extent. As of this version, the parser doesn't support binary data embedded within two XML tags, and can only read UTF-8 XML.
